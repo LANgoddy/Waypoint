@@ -1,187 +1,241 @@
-# Import all Week 7 classes.
+# Import all Week 8 classes.
 from distance import Distance
-from trail import Trail
-from itinerary import Itinerary
+from trail import (
+    Trail,
+    DayHike,
+    GuidedDayHike,
+    BackpackingRoute,
+    TrailRun,
+    RatedElevationDayHike
+)
 
 
 # ---------------------------------------------------------
-# TEST 1: DISTANCE
+# TEST 1: DISTANCE ADDITION
 # ---------------------------------------------------------
 
-# Create a valid distance.
-distance1 = Distance(5, "km")
+distance1 = Distance(3, "km")
+distance2 = Distance(2, "km")
 
-print("TEST 1 - Distance:")
-print(distance1.magnitude, distance1.unit)
+total_distance = distance1 + distance2
 
-# Convert kilometres to miles.
-distance_in_miles = distance1.convert("mi")
-
-print("Converted to miles:")
-print(distance_in_miles.magnitude, distance_in_miles.unit)
-
-# Convert the miles back to kilometres.
-distance_back_to_km = distance_in_miles.convert("km")
-
-print("Converted back to kilometres:")
-print(distance_back_to_km.magnitude, distance_back_to_km.unit)
+print("TEST 1 - Distance addition:")
+print(total_distance)
 
 
 # ---------------------------------------------------------
-# TEST 2: TRAIL CREATED NORMALLY
+# TEST 2: DISTANCE SUBTRACTION
 # ---------------------------------------------------------
 
-trail1 = Trail(
+distance3 = Distance(10, "km")
+distance4 = Distance(4, "km")
+
+remaining_distance = distance3 - distance4
+
+print("\nTEST 2 - Distance subtraction:")
+print(remaining_distance)
+
+
+# ---------------------------------------------------------
+# TEST 3: DISTANCE EQUALITY
+# ---------------------------------------------------------
+
+distance5 = Distance(5, "km")
+distance6 = Distance(5, "km")
+
+print("\nTEST 3 - Distance equality:")
+print(distance5 == distance6)
+
+
+# ---------------------------------------------------------
+# TEST 4: DISTANCE SORTING
+# ---------------------------------------------------------
+
+distances = [
+    Distance(8, "km"),
+    Distance(2, "km"),
+    Distance(5, "km"),
+    Distance(1, "km")
+]
+
+# sorted() uses the __lt__ method from Distance.
+sorted_distances = sorted(distances)
+
+print("\nTEST 4 - Sorted distances:")
+
+for distance in sorted_distances:
+    print(distance)
+
+
+# ---------------------------------------------------------
+# TEST 5: MIXED UNITS
+# ---------------------------------------------------------
+
+# Mixed units are automatically converted.
+mixed_total = Distance(3, "km") + Distance(2, "mi")
+
+print("\nTEST 5 - Mixed-unit addition:")
+print(mixed_total)
+
+
+# ---------------------------------------------------------
+# TEST 6: CREATE DIFFERENT TRAIL TYPES
+# ---------------------------------------------------------
+
+day_hike = DayHike(
     1,
     "Maple Ridge Trail",
-    Distance(5, "km"),
-    250,
+    Distance(8, "km"),
+    300,
     "moderate"
 )
 
-print("\nTEST 2 - Trail:")
-print(trail1)
-
-
-# ---------------------------------------------------------
-# TEST 3: TRAIL CREATED FROM A DICTIONARY
-# ---------------------------------------------------------
-
-trail_data = {
-    "id": 2,
-    "name": "Pine Valley Trail",
-    "distance": 8,
-    "unit": "km",
-    "elevation_gain_m": 400,
-    "difficulty": "hard"
-}
-
-trail2 = Trail.from_dict(trail_data)
-
-print("\nTEST 3 - Trail from dictionary:")
-print(trail2)
-
-
-# ---------------------------------------------------------
-# TEST 4: TRAIL EQUALITY
-# ---------------------------------------------------------
-
-# This trail has different information,
-# but it uses the same id as trail1.
-duplicate_trail = Trail(
-    1,
-    "Different Trail Name",
-    Distance(20, "km"),
+backpacking_route = BackpackingRoute(
+    2,
+    "Mountain Pass Route",
+    Distance(18, "km"),
     900,
-    "expert"
+    "hard"
 )
 
-print("\nTEST 4 - Same id means trails are equal:")
-print(trail1 == duplicate_trail)
-
-
-# ---------------------------------------------------------
-# TEST 5: DEFAULT UNIT
-# ---------------------------------------------------------
-
-# Create a trail before changing the default unit.
-before_change = Trail(
+trail_run = TrailRun(
     3,
-    "Before Default Change",
-    4,
-    100,
-    "easy"
+    "River Run Trail",
+    Distance(12, "km"),
+    200,
+    "moderate"
 )
 
-print("\nTEST 5 - Before changing default unit:")
-print(before_change.distance.magnitude, before_change.distance.unit)
-
-# Change the class default unit to miles.
-Trail.set_default_unit("mi")
-
-# Create a new trail after the default was changed.
-after_change = Trail(
+guided_hike = GuidedDayHike(
     4,
-    "After Default Change",
-    4,
-    100,
-    "easy"
-)
-
-print("After changing default unit:")
-print(after_change.distance.magnitude, after_change.distance.unit)
-
-# Show that the old trail kept its original unit.
-print("Old trail still has:")
-print(before_change.distance.magnitude, before_change.distance.unit)
-
-
-# ---------------------------------------------------------
-# TEST 6: ITINERARY
-# ---------------------------------------------------------
-
-trail3 = Trail(
-    5,
-    "Lake View Trail",
-    Distance(3, "km"),
+    "Forest Discovery Trail",
+    Distance(6, "km"),
     150,
-    "easy"
+    "easy",
+    "Alex"
 )
 
-itinerary1 = Itinerary()
-
-itinerary1.add_trail(trail1)
-itinerary1.add_trail(trail2)
-itinerary1.add_trail(trail3)
-
-total = itinerary1.total_distance()
-
-print("\nTEST 6 - Itinerary total:")
-print(total.magnitude, total.unit)
+print("\nTEST 6 - Trail summaries:")
+print(day_hike.summary())
+print(backpacking_route.summary())
+print(trail_run.summary())
+print(guided_hike.summary())
 
 
 # ---------------------------------------------------------
-# TEST 7: ITINERARIES HAVE SEPARATE LISTS
+# TEST 7: POLYMORPHISM
 # ---------------------------------------------------------
 
-itinerary2 = Itinerary()
+# Each object responds to estimated_time()
+# using the version defined in its own class.
+trail_list = [
+    day_hike,
+    backpacking_route,
+    trail_run,
+    guided_hike
+]
 
-print("\nTEST 7 - Separate itinerary lists:")
-print("Itinerary 1 number of trails:", len(itinerary1.trails))
-print("Itinerary 2 number of trails:", len(itinerary2.trails))
+print("\nTEST 7 - Polymorphic estimated times:")
 
-
-# ---------------------------------------------------------
-# TEST 8: INVALID DIFFICULTY
-# ---------------------------------------------------------
-
-# Try to create a trail with an invalid difficulty.
-# The Trail class should reject it by raising a ValueError.
-try:
-    invalid_trail = Trail(
-        6,
-        "Invalid Trail",
-        Distance(5, "km"),
-        200,
-        "impossible"
+for trail in trail_list:
+    print(
+        trail.name,
+        "-",
+        trail.estimated_time(),
+        "hours"
     )
 
-# Catch the expected ValueError so the rest of the program does not crash.
-except ValueError as error:
-    print("\nTEST 8 - Invalid difficulty rejected:")
-    print(error)
-
 
 # ---------------------------------------------------------
-# TEST 9: NEGATIVE DISTANCE
+# TEST 8: ABSTRACT CLASS
 # ---------------------------------------------------------
 
-# Try to create an invalid negative distance.
-# The Distance class should reject it by raising a ValueError.
+# Trail is abstract and should not be created directly.
 try:
-    invalid_distance = Distance(-5, "km")
+    invalid_trail = Trail(
+        5,
+        "Generic Trail",
+        Distance(5, "km"),
+        100,
+        "easy"
+    )
 
-# Catch the expected ValueError and display the validation message.
-except ValueError as error:
-    print("\nTEST 9 - Negative distance rejected:")
+except TypeError as error:
+    print("\nTEST 8 - Abstract Trail rejected:")
     print(error)
+
+
+# ---------------------------------------------------------
+# TEST 9: PACKING-LIST OVERRIDE
+# ---------------------------------------------------------
+
+print("\nTEST 9 - Day hike packing list:")
+print(day_hike.packing_list())
+
+print("Backpacking packing list:")
+print(backpacking_route.packing_list())
+
+
+# ---------------------------------------------------------
+# TEST 10: MIXINS
+# ---------------------------------------------------------
+
+rated_hike = RatedElevationDayHike(
+    6,
+    "Cliff View Trail",
+    Distance(5, "km"),
+    500,
+    "hard"
+)
+
+# Rating behaviour comes from RatingMixin.
+rated_hike.set_rating(4.5)
+
+print("\nTEST 10 - Mixin behaviour:")
+print("Grade:", rated_hike.grade_percent(), "%")
+print("Rating:", rated_hike.rating_summary())
+
+
+# ---------------------------------------------------------
+# TEST 11: METHOD RESOLUTION ORDER
+# ---------------------------------------------------------
+
+print("\nTEST 11 - MRO:")
+
+for class_type in RatedElevationDayHike.__mro__:
+    print(class_type.__name__)
+
+
+# ---------------------------------------------------------
+# TEST 12: DUCK TYPING
+# ---------------------------------------------------------
+
+# FakeTrail does not inherit from Trail.
+# It simply provides the method needed by the loop.
+class FakeTrail:
+
+    def __init__(self, name):
+        self.name = name
+
+    def estimated_time(self):
+        return 1.25
+
+
+fake_trail = FakeTrail("Testing Trail")
+
+mixed_trails = [
+    day_hike,
+    backpacking_route,
+    trail_run,
+    fake_trail
+]
+
+print("\nTEST 12 - Duck typing:")
+
+for trail in mixed_trails:
+    print(
+        trail.name,
+        "-",
+        trail.estimated_time(),
+        "hours"
+    )
