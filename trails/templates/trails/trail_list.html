@@ -1,34 +1,116 @@
-{% load static %}
+{% extends "trails/base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <!-- Basic information about the webpage. -->
-    <meta charset="UTF-8">
+{% block title %}
+Trail Catalogue - Waypoint
+{% endblock %}
 
-    <!-- Text displayed on the browser tab. -->
-    <title>Waypoint Trail Catalogue</title>
 
-    <!-- Connect this page to the Waypoint CSS file. -->
-    <link rel="stylesheet" href="{% static 'trails/style.css' %}">
-</head>
+{% block content %}
 
-<body>
+    <!-- Page heading. -->
+    <h1>Waypoint Trail Catalogue</h1>
 
-    <!-- Main content container. -->
-    <div class="container">
+    <!-- Short introduction. -->
+    <p>
+        Browse available trails and plan your next outdoor adventure.
+    </p>
 
-        <!-- Main heading for the trail catalogue. -->
-        <h1>Waypoint Trail Catalogue</h1>
+    <!-- Search form for filtering trails. -->
+    <form method="get">
 
-        <!-- Placeholder content for Week 9. -->
-        <p>
-            Browse available trails and plan your next outdoor adventure.
-        </p>
+        <!-- Display the search field from TrailSearchForm. -->
+        {{ search_form.as_p }}
 
-    </div>
+        <!-- Button used to submit the search. -->
+        <button type="submit">
+            Search
+        </button>
 
-</body>
+    </form>
 
-</html>
+
+    <!-- Check whether any Trail records exist. -->
+    {% if trails %}
+
+        <!-- Display each Trail from the database. -->
+        {% for trail in trails %}
+
+            <div class="trail-card">
+
+                <!-- Trail name links to its detail page. -->
+                <h2>
+                    <a href="{% url 'trails:trail_detail' trail.pk %}">
+                        {{ trail.name }}
+                    </a>
+                </h2>
+
+                <!-- Display the related Park. -->
+                <p>
+                    <strong>Park:</strong>
+                    {{ trail.park }}
+                </p>
+
+                <!-- Display trail distance. -->
+                <p>
+                    <strong>Distance:</strong>
+                    {{ trail.distance_km }} km
+                </p>
+
+                <!-- Display trail difficulty. -->
+                <p>
+                    <strong>Difficulty:</strong>
+                    {{ trail.get_difficulty_display }}
+                </p>
+
+            </div>
+
+        {% endfor %}
+
+
+        <!-- ---------------------------------------------------------
+             PAGINATION
+        ---------------------------------------------------------- -->
+
+        {% if is_paginated %}
+
+            <div class="pagination">
+
+                <!-- Show Previous only when an earlier page exists. -->
+                {% if page_obj.has_previous %}
+
+                    <a href="?query={{ request.GET.query }}&page={{ page_obj.previous_page_number }}">
+                        Previous
+                    </a>
+
+                {% endif %}
+
+
+                <!-- Show the current page number. -->
+                <span>
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+
+
+                <!-- Show Next only when another page exists. -->
+                {% if page_obj.has_next %}
+
+                    <a href="?query={{ request.GET.query }}&page={{ page_obj.next_page_number }}">
+                        Next
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+
+    {% else %}
+
+        <!-- This appears if there are no matching Trail records. -->
+        <p>No trails were found.</p>
+
+    {% endif %}
+
+{% endblock %}

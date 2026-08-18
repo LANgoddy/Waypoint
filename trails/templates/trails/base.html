@@ -1,0 +1,40 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Basic information about the webpage. -->
+    <meta charset="UTF-8">
+
+    <!-- Child pages can provide their own browser-tab title. -->
+    <title>
+        {% block title %}
+        Waypoint
+        {% endblock %}
+    </title>
+
+    <!-- Load the shared Waypoint CSS file. -->
+    <link rel="stylesheet" href="{% static 'trails/style.css' %}">
+</head>
+
+<body>
+
+    <!-- Navigation shared by all Waypoint pages. -->
+    <nav>
+        <a href="{% url 'trails:trail_list' %}">Trails</a>
+        <a href="{% url 'about' %}">About</a>
+    </nav>
+
+    <!-- Main page container. -->
+    <div class="container">
+
+        <!-- Each child template places its own content here. -->
+        {% block content %}
+        {% endblock %}
+
+    </div>
+
+</body>
+
+</html>
