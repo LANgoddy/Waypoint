@@ -1,0 +1,39 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Each child template can provide its own page title. -->
+    <title>
+        {% block title %}
+        Waypoint
+        {% endblock %}
+    </title>
+
+    <!-- Shared stylesheet used by all pages. -->
+    <link rel="stylesheet" href="{% static 'trails/style.css' %}">
+</head>
+
+<body>
+
+    <!-- Shared navigation shown on every page. -->
+    <nav>
+        <a href="{% url 'trails:trail_list' %}">Trails</a>
+        <a href="{% url 'about' %}">About</a>
+    </nav>
+
+    <!-- Main content area. -->
+    <div class="container">
+
+        <!-- Child templates place their page-specific content here. -->
+        {% block content %}
+        {% endblock %}
+
+    </div>
+
+</body>
+
+</html>

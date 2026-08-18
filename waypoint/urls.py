@@ -1,22 +1,37 @@
 # Import Django's admin site.
 from django.contrib import admin
 
-# Import path so we can define URL routes.
-from django.urls import path
+# Import include so the main project can use URLs from the trails app.
+from django.urls import path, include
 
-# Import the views from the trails app.
-from trails import views
+# Import render so we can keep a simple About page.
+from django.shortcuts import render
 
 
-# URL patterns tell Django which view to run for each web address.
+# ---------------------------------------------------------
+# ABOUT VIEW
+# ---------------------------------------------------------
+
+# This simple function keeps the About page working.
+def about(request):
+    return render(request, "trails/about.html")
+
+
+# ---------------------------------------------------------
+# MAIN PROJECT URLS
+# ---------------------------------------------------------
+
 urlpatterns = [
 
-    # Django admin page.
+    # Django administration page.
     path("admin/", admin.site.urls),
 
     # About page.
-    path("about/", views.about, name="about"),
+    path("about/", about, name="about"),
 
-    # Trail catalogue page.
-    path("trails/", views.trail_list, name="trail_list"),
+    # Send all /trails/ URLs to trails/urls.py.
+    path(
+        "trails/",
+        include("trails.urls")
+    ),
 ]

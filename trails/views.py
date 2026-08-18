@@ -1,16 +1,39 @@
-# Import render so Django can display HTML templates.
-from django.shortcuts import render
+# Import Django's generic class-based views.
+from django.views.generic import ListView, DetailView
+
+# Import the Trail model from this app.
+from .models import Trail
 
 
-# This view handles requests for the About page.
-def about(request):
+# ---------------------------------------------------------
+# TRAIL LIST VIEW
+# ---------------------------------------------------------
 
-    # Render the About page HTML template.
-    return render(request, "trails/about.html")
+# This class displays all Trail records from the database.
+class TrailListView(ListView):
+
+    # Tell Django which model this view uses.
+    model = Trail
+
+    # Tell Django which template should display the records.
+    template_name = "trails/trail_list.html"
+
+    # Give the trail list a clear variable name inside the template.
+    context_object_name = "trails"
 
 
-# This view handles requests for the trail catalogue page.
-def trail_list(request):
+# ---------------------------------------------------------
+# TRAIL DETAIL VIEW
+# ---------------------------------------------------------
 
-    # Render the Trail Catalogue HTML template.
-    return render(request, "trails/trail_list.html")
+# This class displays one individual Trail record.
+class TrailDetailView(DetailView):
+
+    # Tell Django which model this view uses.
+    model = Trail
+
+    # Tell Django which template should display one trail.
+    template_name = "trails/trail_detail.html"
+
+    # Give the selected Trail object a clear name in the template.
+    context_object_name = "trail"

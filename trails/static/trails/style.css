@@ -36,3 +36,33 @@ p {
     background-color: white;
     border-radius: 10px;
 }
+
+
+/* ---------------------------------------------------------
+   WEEK 11 - NAVIGATION AND TRAIL CARDS
+--------------------------------------------------------- */
+
+/* Style the navigation area shared by all pages. */
+nav {
+    max-width: 900px;
+    margin: 0 auto 20px auto;
+}
+
+/* Add spacing between navigation links. */
+nav a {
+    margin-right: 15px;
+    font-weight: bold;
+}
+
+/* Style each trail displayed in the catalogue. */
+.trail-card {
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+}
+
+/* Remove extra space from trail headings. */
+.trail-card h2 {
+    margin-top: 0;
+}

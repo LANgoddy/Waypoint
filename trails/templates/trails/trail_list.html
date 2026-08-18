@@ -1,34 +1,63 @@
-{% load static %}
+{% extends "trails/base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <!-- Basic information about the webpage. -->
-    <meta charset="UTF-8">
+{% block title %}
+Trail Catalogue - Waypoint
+{% endblock %}
 
-    <!-- Text displayed on the browser tab. -->
-    <title>Waypoint Trail Catalogue</title>
 
-    <!-- Connect this page to the Waypoint CSS file. -->
-    <link rel="stylesheet" href="{% static 'trails/style.css' %}">
-</head>
+{% block content %}
 
-<body>
+    <!-- Page heading. -->
+    <h1>Waypoint Trail Catalogue</h1>
 
-    <!-- Main content container. -->
-    <div class="container">
+    <!-- Short introduction. -->
+    <p>
+        Browse available trails and plan your next outdoor adventure.
+    </p>
 
-        <!-- Main heading for the trail catalogue. -->
-        <h1>Waypoint Trail Catalogue</h1>
+    <!-- Check whether any Trail records exist. -->
+    {% if trails %}
 
-        <!-- Placeholder content for Week 9. -->
-        <p>
-            Browse available trails and plan your next outdoor adventure.
-        </p>
+        <!-- Display each Trail from the database. -->
+        {% for trail in trails %}
 
-    </div>
+            <div class="trail-card">
 
-</body>
+                <!-- Trail name links to its detail page. -->
+                <h2>
+                    <a href="{% url 'trails:trail_detail' trail.pk %}">
+                        {{ trail.name }}
+                    </a>
+                </h2>
 
-</html>
+                <!-- Display the related Park. -->
+                <p>
+                    <strong>Park:</strong>
+                    {{ trail.park }}
+                </p>
+
+                <!-- Display trail distance. -->
+                <p>
+                    <strong>Distance:</strong>
+                    {{ trail.distance_km }} km
+                </p>
+
+                <!-- Display trail difficulty. -->
+                <p>
+                    <strong>Difficulty:</strong>
+                    {{ trail.get_difficulty_display }}
+                </p>
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <!-- This appears if the database contains no trails. -->
+        <p>No trails are currently available.</p>
+
+    {% endif %}
+
+{% endblock %}
