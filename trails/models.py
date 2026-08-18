@@ -1,4 +1,4 @@
-# Import Django's model tools.
+# Import Django's database model tools.
 from django.db import models
 
 
@@ -6,7 +6,7 @@ from django.db import models
 # PARK MODEL
 # ---------------------------------------------------------
 
-# A Park represents a location that can contain many trails.
+# This model stores information about a park.
 class Park(models.Model):
 
     # Store the park name.
@@ -15,7 +15,7 @@ class Park(models.Model):
     # Store an optional description of the park.
     description = models.TextField(blank=True)
 
-    # Display the park name in Django Admin and the Django shell.
+    # Display the park name when Django shows this object.
     def __str__(self):
         return self.name
 
@@ -24,10 +24,10 @@ class Park(models.Model):
 # TRAIL MODEL
 # ---------------------------------------------------------
 
-# A Trail represents a trail stored in the database.
+# This model stores information about a trail.
 class Trail(models.Model):
 
-    # Difficulty choices help keep database values consistent.
+    # Define the allowed trail difficulty values.
     DIFFICULTY_CHOICES = [
         ("easy", "Easy"),
         ("moderate", "Moderate"),
@@ -35,8 +35,7 @@ class Trail(models.Model):
         ("expert", "Expert"),
     ]
 
-    # Each trail belongs to one Park.
-    # A Park can therefore contain many Trail records.
+    # Connect each trail to one Park.
     park = models.ForeignKey(
         Park,
         on_delete=models.CASCADE,
@@ -55,9 +54,13 @@ class Trail(models.Model):
         choices=DIFFICULTY_CHOICES
     )
 
-    # Store the elevation gain in metres.
+    # Store the elevation gained on the trail.
     elevation_gain_m = models.PositiveIntegerField()
 
-    # Display the trail name in Django Admin and the Django shell.
+    # Store whether the trail is currently open.
+    # True means users can see it in the public trail catalogue.
+    is_open = models.BooleanField(default=True)
+
+    # Display the trail name when Django shows this object.
     def __str__(self):
         return self.name

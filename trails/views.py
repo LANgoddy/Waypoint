@@ -61,8 +61,11 @@ class TrailListView(ListView):
         # Record that the trail catalogue was requested.
         logger.info("Trail catalogue requested.")
 
-        # Retrieve Trails and their related Parks efficiently.
-        queryset = Trail.objects.select_related("park").all()
+        # Retrieve only trails that are currently open.
+        # Also retrieve the related Park efficiently.
+        queryset = Trail.objects.select_related("park").filter(
+            is_open=True
+        )
 
         # Get the text entered in the search box.
         query = self.request.GET.get("query")
@@ -71,10 +74,15 @@ class TrailListView(ListView):
         if query:
 
             # Record the search term in the log.
-            logger.info("Trail search performed for: %s", query)
+            logger.info(
+                "Trail search performed for: %s",
+                query
+            )
 
-            # Filter Trail records by name.
-            queryset = queryset.filter(name__icontains=query)
+            # Filter the open Trail records by name.
+            queryset = queryset.filter(
+                name__icontains=query
+            )
 
         # Give the queryset a consistent order for pagination.
         queryset = queryset.order_by("name")
@@ -89,7 +97,9 @@ class TrailListView(ListView):
         context = super().get_context_data(**kwargs)
 
         # Add the search form to the template.
-        context["search_form"] = TrailSearchForm(self.request.GET)
+        context["search_form"] = TrailSearchForm(
+            self.request.GET
+        )
 
         # Return everything to the template.
         return context
@@ -117,5 +127,8 @@ class TrailDetailView(DetailView):
         # Record that a trail detail page was requested.
         logger.info("Trail detail page requested.")
 
-        # Retrieve the Trail and Park in the same database query.
-        return Trail.objects.select_related("park")
+        # Only allow open trails to be viewed publicly.
+        # Also retrieve the related Park efficiently.
+        return Trail.objects.select_related("park").filter(
+            is_open=True
+        )
