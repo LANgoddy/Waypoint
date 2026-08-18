@@ -1,0 +1,13 @@
+# Ignore the PyCharm virtual environment.
+.venv/
+env/
+
+# Ignore Python cache files.
+__pycache__/
+*.pyc
+
+# Ignore PyCharm project settings.
+.idea/
+
+# Ignore the Django database that will be created later.
+db.sqlite3
