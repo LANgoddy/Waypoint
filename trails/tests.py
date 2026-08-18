@@ -7,6 +7,9 @@ from django.urls import reverse
 # Import the Park and Trail database models.
 from .models import Park, Trail
 
+# Import the original Distance class from our Python domain model.
+from distance import Distance
+
 
 # ---------------------------------------------------------
 # TRAIL MODEL TESTS
@@ -65,13 +68,14 @@ class TrailListViewTests(TestCase):
             description="Test park for Waypoint."
         )
 
-        # Create three trails for testing.
+        # Create three open trails for testing.
         Trail.objects.create(
             park=self.park,
             name="Vista Trail",
             distance_km=7.5,
             difficulty="moderate",
-            elevation_gain_m=180
+            elevation_gain_m=180,
+            is_open=True
         )
 
         Trail.objects.create(
@@ -79,7 +83,8 @@ class TrailListViewTests(TestCase):
             name="Cedar Ridge Trail",
             distance_km=4.2,
             difficulty="easy",
-            elevation_gain_m=90
+            elevation_gain_m=90,
+            is_open=True
         )
 
         Trail.objects.create(
@@ -87,7 +92,8 @@ class TrailListViewTests(TestCase):
             name="Mast Trail",
             distance_km=11.0,
             difficulty="hard",
-            elevation_gain_m=320
+            elevation_gain_m=320,
+            is_open=True
         )
 
     # Test that the trail catalogue loads successfully.
@@ -156,6 +162,61 @@ class TrailListViewTests(TestCase):
 
 
 # ---------------------------------------------------------
+# WEEK 14 - OPEN TRAIL QUERY TEST
+# ---------------------------------------------------------
+
+# Test that the public catalogue shows only open trails.
+class OpenTrailQueryTests(TestCase):
+
+    # Create an open trail and a closed trail.
+    def setUp(self):
+
+        self.park = Park.objects.create(
+            name="Waypoint Test Park",
+            description="Park used for open-trail testing."
+        )
+
+        # This trail should appear publicly.
+        self.open_trail = Trail.objects.create(
+            park=self.park,
+            name="Open Forest Trail",
+            distance_km=5.0,
+            difficulty="easy",
+            elevation_gain_m=100,
+            is_open=True
+        )
+
+        # This trail should not appear publicly.
+        self.closed_trail = Trail.objects.create(
+            park=self.park,
+            name="Closed Forest Trail",
+            distance_km=8.0,
+            difficulty="moderate",
+            elevation_gain_m=200,
+            is_open=False
+        )
+
+    # Verify that only open trails appear in the catalogue.
+    def test_catalogue_displays_only_open_trails(self):
+
+        response = self.client.get(
+            reverse("trails:trail_list")
+        )
+
+        # The open trail should be visible.
+        self.assertContains(
+            response,
+            "Open Forest Trail"
+        )
+
+        # The closed trail should not be visible.
+        self.assertNotContains(
+            response,
+            "Closed Forest Trail"
+        )
+
+
+# ---------------------------------------------------------
 # TRAIL DETAIL VIEW TESTS
 # ---------------------------------------------------------
 
@@ -175,7 +236,8 @@ class TrailDetailViewTests(TestCase):
             name="Vista Trail",
             distance_km=7.5,
             difficulty="moderate",
-            elevation_gain_m=180
+            elevation_gain_m=180,
+            is_open=True
         )
 
     # Test that the trail detail page loads successfully.
@@ -217,3 +279,38 @@ class TrailDetailViewTests(TestCase):
             response,
             "180"
         )
+
+    # -----------------------------------------------------
+    # WEEK 14 - INVALID DETAIL URL TEST
+    # -----------------------------------------------------
+
+    # Test that requesting a trail that does not exist
+    # returns HTTP status code 404.
+    def test_invalid_trail_detail_returns_404(self):
+
+        response = self.client.get(
+            reverse(
+                "trails:trail_detail",
+                args=[999999]
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404
+        )
+
+
+# ---------------------------------------------------------
+# WEEK 14 - ORIGINAL DOMAIN RULE TEST
+# ---------------------------------------------------------
+
+# Test one of the rules from our original Python domain model.
+class DistanceDomainTests(TestCase):
+
+    # A Distance must never contain a negative value.
+    def test_negative_distance_is_rejected(self):
+
+        # Creating a negative Distance should raise ValueError.
+        with self.assertRaises(ValueError):
+            Distance(-5, "km")
