@@ -1,19 +1,72 @@
-# Import the Distance class so that each Trail object can store a Distance object.
+# Import ABC and abstractmethod so Trail can become an abstract base class.
+from abc import ABC, abstractmethod
+
+# Import Distance because every trail still has a Distance object.
 from distance import Distance
 
 
-# This class represents a trail in the Waypoint application.
-# Each trail has an id, name, distance, elevation gain, and difficulty.
-class Trail:
+# This mixin provides elevation-related behaviour.
+# A mixin is a small reusable class that adds one specific capability.
+class ElevationMixin:
 
-    # This class variable stores the default distance unit used by the platform.
+    # Calculate the grade percentage using elevation gain and trail distance.
+    def grade_percent(self):
+
+        # Convert trail distance to kilometres if necessary.
+        distance_km = self.distance.convert("km").magnitude
+
+        # Prevent division by zero.
+        if distance_km == 0:
+            return 0
+
+        # Convert kilometres to metres.
+        distance_m = distance_km * 1000
+
+        # Calculate grade percentage.
+        return (self.elevation_gain_m / distance_m) * 100
+
+
+# This mixin provides rating-related behaviour.
+class RatingMixin:
+
+    # Set a rating value for the trail.
+    def set_rating(self, rating):
+
+        # Rating must be between 0 and 5.
+        if rating < 0 or rating > 5:
+            raise ValueError("Rating must be between 0 and 5.")
+
+        self.rating = rating
+
+    # Return the rating in a readable format.
+    def rating_summary(self):
+
+        # If no rating has been set yet, show a default message.
+        if not hasattr(self, "rating"):
+            return "No rating available"
+
+        return f"{self.rating}/5 stars"
+
+
+# Trail is now an abstract base class.
+# It contains behaviour shared by all trail types.
+class Trail(ABC):
+
+    # Default distance unit used when a plain number is supplied.
     default_unit = "km"
 
-    # These are the only difficulty values allowed in the application.
+    # Allowed difficulty values.
     ALLOWED_DIFFICULTIES = ("easy", "moderate", "hard", "expert")
 
-    # The __init__ method runs automatically when a Trail object is created.
-    def __init__(self, trail_id, name, distance, elevation_gain_m, difficulty):
+    # The constructor stores information common to all trail types.
+    def __init__(
+        self,
+        trail_id,
+        name,
+        distance,
+        elevation_gain_m,
+        difficulty
+    ):
 
         # Store the trail id.
         self.id = trail_id
@@ -21,83 +74,72 @@ class Trail:
         # Store the trail name.
         self.name = name
 
-        # If the distance passed in is already a Distance object,
-        # store it directly.
+        # If distance is already a Distance object, use it directly.
         if isinstance(distance, Distance):
             self.distance = distance
 
-        # Otherwise, create a new Distance object using the current default unit.
+        # Otherwise, create a Distance using the current default unit.
         else:
             self.distance = Distance(distance, Trail.default_unit)
 
-        # Elevation gain cannot be negative.
-        if elevation_gain_m < 0:
+        # Validate elevation gain before storing it.
+        if not Trail.is_valid_elevation(elevation_gain_m):
             raise ValueError("Elevation gain cannot be negative.")
 
-        # Store the elevation gain.
         self.elevation_gain_m = elevation_gain_m
 
-        # Difficulty is stored as private/internal state.
+        # Store difficulty as internal data.
         self._difficulty = None
 
-        # Use the setter method so difficulty is validated before being stored.
+        # Validate and store difficulty.
         self.set_difficulty(difficulty)
 
-    # This method safely changes the difficulty of a trail.
+    # Safely change the difficulty value.
     def set_difficulty(self, difficulty):
 
-        # Use the static validator to check if the difficulty is allowed.
         if not Trail.is_valid_difficulty(difficulty):
             raise ValueError(
                 "Difficulty must be easy, moderate, hard, or expert."
             )
 
-        # Store the validated difficulty.
         self._difficulty = difficulty
 
-    # Provide read-only access to the difficulty value.
+    # Read-only access to difficulty.
     @property
     def difficulty(self):
         return self._difficulty
 
-    # This static method checks whether a difficulty value is valid.
-    # It does not need access to a specific Trail object.
+    # Static validator for difficulty.
     @staticmethod
     def is_valid_difficulty(difficulty):
         return difficulty in Trail.ALLOWED_DIFFICULTIES
 
-    # This static method checks whether an elevation value is valid.
+    # Static validator for elevation.
     @staticmethod
     def is_valid_elevation(elevation_gain_m):
         return elevation_gain_m >= 0
 
-    # This class method changes the platform's default distance unit.
+    # Class method for changing the default unit.
     @classmethod
     def set_default_unit(cls, unit):
 
-        # Only kilometres and miles are allowed.
         if unit not in ("km", "mi"):
             raise ValueError("Default unit must be 'km' or 'mi'.")
 
-        # Change the class variable.
         cls.default_unit = unit
 
-    # This class method creates a Trail object from a dictionary.
-    # This is useful when trail data comes from an API or JSON-like source.
+    # Alternate constructor for API-shaped dictionary data.
     @classmethod
     def from_dict(cls, data):
 
-        # Get the distance value from the dictionary.
         distance_value = data["distance"]
-
-        # Get the unit from the dictionary.
-        # If no unit is supplied, use the current platform default.
         distance_unit = data.get("unit", cls.default_unit)
 
-        # Create a Distance object from the dictionary values.
-        distance_object = Distance(distance_value, distance_unit)
+        distance_object = Distance(
+            distance_value,
+            distance_unit
+        )
 
-        # Return a new Trail object.
         return cls(
             data["id"],
             data["name"],
@@ -106,22 +148,208 @@ class Trail:
             data["difficulty"]
         )
 
-    # This special method defines how two Trail objects are compared.
-    # Two trails are considered equal if their ids are the same.
+    # Two trails are equal when they have the same id.
     def __eq__(self, other):
 
-        # If the other value is not a Trail object,
-        # Python should consider the comparison unsupported.
         if not isinstance(other, Trail):
             return NotImplemented
 
-        # Compare the ids.
         return self.id == other.id
 
-    # This optional method makes Trail objects easier to read when printed.
-    def __str__(self):
-        return (
-            f"{self.name} - "
-            f"{self.distance.magnitude} {self.distance.unit} - "
-            f"{self.difficulty}"
+    # Every concrete trail type MUST provide its own estimated time.
+    @abstractmethod
+    def estimated_time(self):
+        pass
+
+    # Every concrete trail type MUST provide its own summary.
+    @abstractmethod
+    def summary(self):
+        pass
+
+
+# DayHike inherits from Trail.
+# It represents a trail intended to be completed in one day.
+class DayHike(Trail):
+
+    # Use super().__init__ to reuse Trail's constructor.
+    def __init__(
+        self,
+        trail_id,
+        name,
+        distance,
+        elevation_gain_m,
+        difficulty
+    ):
+        super().__init__(
+            trail_id,
+            name,
+            distance,
+            elevation_gain_m,
+            difficulty
         )
+
+    # Day hikes use an average walking pace of 4 km per hour.
+    def estimated_time(self):
+
+        distance_km = self.distance.convert("km").magnitude
+
+        hours = distance_km / 4
+
+        return hours
+
+    # Provide a summary specific to a day hike.
+    def summary(self):
+
+        return (
+            f"Day Hike: {self.name} | "
+            f"{self.distance.magnitude} {self.distance.unit} | "
+            f"Difficulty: {self.difficulty}"
+        )
+
+    # Day hikes use a simple packing list.
+    def packing_list(self):
+
+        return [
+            "Water",
+            "Snacks",
+            "Map",
+            "First aid kit"
+        ]
+
+
+# GuidedDayHike is a second level of inheritance.
+# It extends DayHike and adds guide information.
+class GuidedDayHike(DayHike):
+
+    def __init__(
+        self,
+        trail_id,
+        name,
+        distance,
+        elevation_gain_m,
+        difficulty,
+        guide_name
+    ):
+
+        # Reuse DayHike's constructor.
+        super().__init__(
+            trail_id,
+            name,
+            distance,
+            elevation_gain_m,
+            difficulty
+        )
+
+        # Store the extra field added by GuidedDayHike.
+        self.guide_name = guide_name
+
+    # Extend the original summary rather than replacing it completely.
+    def summary(self):
+
+        # Call the parent DayHike summary first.
+        original_summary = super().summary()
+
+        # Add the guide information.
+        return f"{original_summary} | Guide: {self.guide_name}"
+
+
+# BackpackingRoute represents a longer multi-day route.
+class BackpackingRoute(Trail):
+
+    def __init__(
+        self,
+        trail_id,
+        name,
+        distance,
+        elevation_gain_m,
+        difficulty
+    ):
+
+        super().__init__(
+            trail_id,
+            name,
+            distance,
+            elevation_gain_m,
+            difficulty
+        )
+
+    # Backpacking is slower because the hiker carries more gear.
+    # We use an average pace of 3 km per hour.
+    def estimated_time(self):
+
+        distance_km = self.distance.convert("km").magnitude
+
+        hours = distance_km / 3
+
+        return hours
+
+    # Provide a backpacking-specific summary.
+    def summary(self):
+
+        return (
+            f"Backpacking Route: {self.name} | "
+            f"{self.distance.magnitude} {self.distance.unit} | "
+            f"Difficulty: {self.difficulty}"
+        )
+
+    # Override packing behaviour because backpacking needs more equipment.
+    def packing_list(self):
+
+        return [
+            "Water",
+            "Food",
+            "Tent",
+            "Sleeping bag",
+            "Cooking equipment",
+            "First aid kit"
+        ]
+
+
+# TrailRun represents a route intended for running.
+class TrailRun(Trail):
+
+    def __init__(
+        self,
+        trail_id,
+        name,
+        distance,
+        elevation_gain_m,
+        difficulty
+    ):
+
+        super().__init__(
+            trail_id,
+            name,
+            distance,
+            elevation_gain_m,
+            difficulty
+        )
+
+    # Trail running is faster than hiking.
+    # We use an average pace of 8 km per hour.
+    def estimated_time(self):
+
+        distance_km = self.distance.convert("km").magnitude
+
+        hours = distance_km / 8
+
+        return hours
+
+    # Provide a running-specific summary.
+    def summary(self):
+
+        return (
+            f"Trail Run: {self.name} | "
+            f"{self.distance.magnitude} {self.distance.unit} | "
+            f"Difficulty: {self.difficulty}"
+        )
+
+
+# This class combines two mixins with DayHike.
+# It gains elevation tools, rating tools, and normal DayHike behaviour.
+class RatedElevationDayHike(
+    ElevationMixin,
+    RatingMixin,
+    DayHike
+):
+    pass
